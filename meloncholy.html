@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MELONCHOLY</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@700;900&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; overflow:hidden; }
+  body {
+    background:#f7ecd7;
+    font-family:'Nunito', sans-serif; color:#3a2b20;
+    touch-action:none; user-select:none; -webkit-user-select:none;
+  }
+  canvas { display:block; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+
+  .screen {
+    position:fixed; inset:0; z-index:20; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px;
+    background:rgba(247,236,215,.94); backdrop-filter:blur(3px);
+    transition:opacity .25s;
+  }
+  .screen.hidden { opacity:0; pointer-events:none; }
+
+  .logo {
+    font-family:'Gochi Hand', cursive; font-size:clamp(54px,10vw,110px);
+    color:#3a2b20; line-height:.9; text-align:center;
+    transform:rotate(-3deg);
+  }
+  .logo em { color:#e0533f; font-style:normal; }
+  .logo .ripple { display:inline-block; animation:bop 2.2s ease-in-out infinite; }
+  .logo .ripple:nth-child(2) { animation-delay:.2s; }
+  .logo .ripple:nth-child(3) { animation-delay:.4s; }
+  @keyframes bop { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-8px) rotate(-4deg)} }
+
+  .tag { color:#8a7663; font-weight:700; letter-spacing:.14em; font-size:14px; }
+
+  .btn {
+    font-family:'Nunito'; font-weight:900; font-size:20px;
+    color:#fff7ec; background:#e0533f; border:0; cursor:pointer;
+    padding:15px 52px; border-radius:40px;
+    box-shadow:0 5px 0 #a83324, 0 10px 22px rgba(58,43,32,.25);
+    transition:transform .1s, box-shadow .1s;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 7px 0 #a83324, 0 14px 26px rgba(58,43,32,.3); }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #a83324; }
+
+  .tut {
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:640px;
+  }
+  .tut .t {
+    background:#fff7ec; border:2px solid #e8d9bd; border-radius:14px;
+    padding:12px 18px; font-size:13.5px; font-weight:700; color:#6b5a49;
+    box-shadow:0 3px 0 #e8d9bd;
+  }
+  .tut .t b { color:#e0533f; }
+
+  #dStats { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  #dStats .c {
+    background:#fff7ec; border:2px solid #e8d9bd; border-radius:16px; padding:14px 26px;
+    text-align:center; box-shadow:0 4px 0 #e8d9bd; transform:rotate(-1deg);
+  }
+  #dStats .c:nth-child(2) { transform:rotate(1.5deg); }
+  #dStats .v { font-size:30px; font-weight:900; color:#3a2b20; }
+  #dStats .l { font-size:11px; color:#8a7663; letter-spacing:.18em; font-weight:700; margin-top:2px; }
+  #dBest { font-weight:900; color:#e0533f; font-size:15px; }
+
+  /* HUD */
+  #hud { position:fixed; inset:0; z-index:5; pointer-events:none; display:none; }
+  #score {
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    font-weight:900; font-size:32px; color:#3a2b20;
+    background:#fff7ec; border:2px solid #e8d9bd; border-radius:18px;
+    padding:2px 26px; box-shadow:0 4px 0 #e8d9bd;
+  }
+  #besthud { position:absolute; top:16px; left:18px; font-weight:700; font-size:13px; color:#8a7663; }
+  #besthud b { color:#3a2b20; font-weight:900; font-size:16px; }
+  #chain {
+    position:absolute; top:64px; left:50%; transform:translateX(-50%);
+    font-weight:900; font-size:20px; color:#e0533f; opacity:0; transition:opacity .15s;
+    text-shadow:0 2px 0 #fff7ec;
+  }
+  #warn {
+    position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+    color:#e0533f; font-weight:900; letter-spacing:.2em; font-size:14px; opacity:0;
+  }
+  #mute { position:fixed; bottom:16px; right:18px; color:#8a766388; font-size:11px; font-weight:700; z-index:6; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div id="besthud">BEST<br><b id="bestN">0</b></div>
+  <div id="score">0</div>
+  <div id="chain">×2</div>
+  <div id="warn">⚠ CRATE OVERFLOWING ⚠</div>
+  <div id="mute">[M] SOUND: ON</div>
+</div>
+
+<div id="title" class="screen">
+  <div class="logo">MEL<span class="ripple">O</span><span class="ripple">N</span><span class="ripple" style="color:#e0533f">C</span>HOL<span style="color:#e0533f">Y</span></div>
+  <div class="tag">A TINY FRUIT PUZZLE ABOUT REGRET</div>
+  <button class="btn" id="startBtn">FILL THE CRATE</button>
+  <div class="tut">
+    <div class="t"><b>AIM &</b> click / tap to drop</div>
+    <div class="t"><b>SAME + SAME</b> fuses into bigger fruit</div>
+    <div class="t"><b>CHAIN</b> cascades stack multipliers</div>
+    <div class="t"><b>DON'T</b> let fruit sit above the line</div>
+  </div>
+</div>
+
+<div id="death" class="screen hidden">
+  <div class="logo" style="font-size:clamp(40px,8vw,80px)">Crate <em>FLOODED.</em></div>
+  <div id="dStats">
+    <div class="c"><div class="v" id="dScore">0</div><div class="l">SCORE</div></div>
+    <div class="c"><div class="v" id="dFruit">CHERRY</div><div class="l">BIGGEST FRUIT</div></div>
+    <div class="c"><div class="v" id="dMerges">0</div><div class="l">FUSIONS</div></div>
+  </div>
+  <div id="dBest"></div>
+  <button class="btn" id="retryBtn">REPLANT</button>
+</div>
+
+<script>
+(() => {
+'use strict';
+// ================= canvas & view =================
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const FIELD = { w: 430, h: 560 };                 // physics space
+const view = { s: 1, ox: 0, oy: 0 };
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cvs.width = W * DPR; cvs.height = H * DPR;
+  cvs.style.width = W + 'px'; cvs.style.height = H + 'px';
+  const sTop = 86, sBot = 46;
+  view.s = Math.min((H - sTop - sBot) / FIELD.h, (W - 24) / FIELD.w, 1.15);
+  view.ox = (W - FIELD.w * view.s) / 2;
+  view.oy = sTop;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resize(); addEventListener('resize', resize);
+
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const $ = id => document.getElementById(id);
+const f2s = (x, y) => [x * view.s + view.ox, y * view.s + view.oy];
+const s2fx = px => (px - view.ox) / view.s;
+
+// ================= fruit species =================
+const SPECIES = [
+  { n:'CHERRY',     r:15,  body:'#e0475c', dark:'#b32a41', pts:1,  face:'happy'   },
+  { n:'STRAWBERRY', r:21,  body:'#ef5872', dark:'#c53a55', pts:3,  face:'happy'   },
+  { n:'GRAPE',      r:28,  body:'#9a5bd6', dark:'#7443a8', pts:6,  face:'happy'   },
+  { n:'LEMON',      r:36,  body:'#f3c93e', dark:'#cfa41f', pts:10, face:'happy'   },
+  { n:'ORANGE',     r:45,  body:'#f2913d', dark:'#cd6f20', pts:15, face:'flat'    },
+  { n:'APPLE',      r:55,  body:'#e05a4e', dark:'#b83c33', pts:21, face:'flat'    },
+  { n:'PEAR',       r:66,  body:'#b9d054', dark:'#8fa833', pts:28, face:'flat'    },
+  { n:'PEACH',      r:78,  body:'#f6a8b4', dark:'#d97f8f', pts:36, face:'worried' },
+  { n:'PINEAPPLE',  r:91,  body:'#eec247', dark:'#c69a26', pts:45, face:'worried' },
+  { n:'MELON',      r:105, body:'#84c063', dark:'#5d9a41', pts:55, face:'worried' },
+  { n:'WATERMELON', r:120, body:'#57a84d', dark:'#2f7a2f', pts:66, face:'cool'    }
+];
+const SPAWN_TABLE = [0,0,0,0,0,1,1,1,2,2,3];  // weighted smalls
+
+// ================= audio =================
+let actx = null; let muted = false;
+function tone(f, dur, type = 'sine', vol = .12, slide = 0) {
+  if (!actx || muted) return;
+  try {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = f;
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, f + slide), actx.currentTime + dur);
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+    o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  } catch (e) {}
+}
+function plop(tier) { tone(620 - tier * 38, .12, 'sine', .16, -220); }
+function fuse(tier) {
+  tone(300 + tier * 45, .16, 'triangle', .14, 260);
+  setTimeout(() => tone(500 + tier * 60, .2, 'sine', .1, 200), 55);
+}
+const SFX = {
+  drop: plop,
+  fuse, big: () => { [262, 392, 523, 659].forEach((x, i) => setTimeout(() => tone(x, .22, 'triangle', .13), i * 70)); },
+  over: () => { ['e','b','g','c'].forEach((_, i) => setTimeout(() => tone(300 - i * 60, .5, 'sawtooth', .09, -60), i * 220)); },
+  pick: () => { tone(880, .1, 'sine', .1, 200); tone(1100, .12, 'sine', .08, 150); }
+};
+
+// ================= state =================
+const game = {
+  state: 'menu', score: 0, best: +(localStorage.getItem('meloncholy-best') || 0),
+  merges: 0, biggest: 0, chain: 0, chainT: 0, deadT: 0,
+  shake: 0, banner: null, bannerT: 0, watermelon: false
+};
+let fruits = [], particles = [], floats = [], rings = [];
+const spawn = { x: FIELD.w / 2, tx: FIELD.w / 2 };
+let current = null, nextQ = [], dropCd = 0;
+
+const DANGER = 74;                                // y of surge line (physics)
+let overflowT = 0;
+
+function newFruit(tier, x, y, vx = 0, vy = 0) {
+  return {
+    tier, x, y, vx, vy, r: SPECIES[tier].r,
+    rot: rand(0, 6.28), vrot: rand(-1, 1), squish: 0,
+    blinkT: rand(1, 5), blink: 0, dead: false,
+    above: 0, birth: 0
+  };
+}
+function drawCurrent() {
+  if (current || game.state !== 'play') return;
+  const t = nextQ.shift();
+  current = newFruit(t, spawn.x, 44);
+  nextQ.push(SPAWN_TABLE[Math.floor(Math.random() * SPAWN_TABLE.length)]);
+}
+function doDrop() {
+  if (dropCd > 0 || !current) return;
+  current.vy = 290;
+  current.vrot = (spawn.tx - spawn.x) * 2;
+  fruits.push(current);
+  current = null;
+  dropCd = .55;
+  SFX.drop(current ? 0 : fruits[fruits.length - 1].tier);
+}
+
+// ================= physics =================
+const GRAV = 1750, REST = .14, FRICTION = .88;
+function physics(dt) {
+  const SUB = 3, sdt = dt / SUB;
+  for (let s = 0; s < SUB; s++) {
+    // integrate
+    for (const f of fruits) {
+      f.vy += GRAV * sdt;
+      f.vx *= 1 - .02 * sdt * 60;
+      f.x += f.vx * sdt; f.y += f.vy * sdt;
+      f.rot += f.vrot * sdt * .6;
+      f.vrot *= 1 - .8 * sdt;
+      const sp = SPECIES[f.tier];
+      // walls
+      if (f.x - f.r < 0) { f.x = f.r; f.vx = Math.abs(f.vx) * .25; }
+      if (f.x + f.r > FIELD.w) { f.x = FIELD.w - f.r; f.vx = -Math.abs(f.vx) * .25; }
+      // floor
+      if (f.y + f.r > FIELD.h) {
+        if (f.vy > 240) { f.squish = Math.min(1, f.vy / 900); if (f.vy > 320) plop(f.tier); }
+        f.y = FIELD.h - f.r;
+        f.vy = -f.vy * .18;
+        if (Math.abs(f.vy) < 26) f.vy = 0;
+        f.vx *= FRICTION * .96;
+      }
+      // ceil
+      if (f.y - f.r < 0) { f.y = f.r; f.vy = Math.abs(f.vy) * .2; }
+      f.squish *= 1 - 6 * sdt;
+      f.dead = false;
+    }
+    // pair collisions + merge
+    for (let i = 0; i < fruits.length; i++) {
+      const a = fruits[i];
+      for (let j = i + 1; j < fruits.length; j++) {
+        const b = fruits[j];
+        let dx = b.x - a.x, dy = b.y - a.y;
+        const rr = a.r + b.r;
+        let d2 = dx * dx + dy * dy;
+        if (d2 >= rr * rr || d2 === 0) continue;
+        const d = Math.sqrt(d2);
+        // same tier -> fuse!
+        if (a.tier === b.tier && a.tier < 12) {
+          fusePair(a, b);
+          break;
+        }
+        // impulse response
+        const nx = dx / d, ny = dy / d;
+        const ma = a.r * a.r, mb = b.r * b.r, mt = ma + mb;
+        const overlap = rr - d;
+        a.x -= nx * overlap * (mb / mt); a.y -= ny * overlap * (mb / mt);
+        b.x += nx * overlap * (ma / mt); b.y += ny * overlap * (ma / mt);
+        const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+        const vn = rvx * nx + rvy * ny;
+        if (vn < 0) {
+          const imp = -(1 + REST) * vn / (1 / ma + 1 / mb);
+          a.vx -= imp * nx / ma; a.vy -= imp * ny / ma;
+          b.vx += imp * nx / mb; b.vy += imp * ny / mb;
+          // squish on impact
+          if (Math.abs(vn) > 200) {
+            a.squish = Math.max(a.squish, Math.min(1, Math.abs(vn) / 1100));
+            b.squish = Math.max(b.squish, Math.min(1, Math.abs(vn) / 1100));
+          }
+        }
+      }
+    }
+    fruits = fruits.filter(f => !f.dead && !f.gone);
+  }
+}
+
+const fuseQueue = [];
+function fusePair(a, b) {
+  // mark both dead once
+  if (a.dead || b.dead) return;
+  a.dead = true; b.dead = true;
+  fuseQueue.push([a, b]);
+}
+function processFusions() {
+  while (fuseQueue.length) {
+    const [a, b] = fuseQueue.shift();
+    if (a.gone || b.gone) continue;
+    a.gone = b.gone = true;
+    const mt = a.tier;
+    const mx = (a.x * a.r + b.x * b.r) / (a.r + b.r);
+    const my = (a.y * a.r + b.y * b.r) / (a.r + b.r);
+    const mvx = (a.vx + b.vx) * .5, mvy = (a.vy + b.vy) * .5;
+    // chain
+    if (game.chainT > 0) game.chain = Math.min(game.chain + 1, 9);
+    else game.chain = 1;
+    game.chainT = 1.1;
+    const mult = game.chain;
+    if (game.chain >= 2) { const c = $('chain'); c.textContent = '×' + mult; c.style.opacity = 1; $('chain').style.transform = `translateX(-50%) scale(${1 + game.chain * .08})`; setTimeout(() => c.style.opacity = 0, 800); }
+
+    if (mt === SPECIES.length - 1) {
+      // two watermelons pop: massive points
+      fruits.splice(fruits.indexOf(a), 1); fruits.splice(fruits.indexOf(b), 1);
+      game.score += 500 * mult;
+      floaters(mx, my, '+500', '#e0533f', 30);
+      boom(mx, my, SPECIES[10].body, 60); rings.push({ x: mx, y: my, r: 30, max: 380, life: .6, color: '#e0533f' });
+      game.shake = 20; SFX.big();
+      banner('DOUBLE WATERMELON?! SCORE ×500');
+      continue;
+    }
+    const nt = mt + 1;
+    const nf = newFruit(nt, mx, my, mvx, mvy);
+    fruits.push(nf);
+    fruits = fruits.filter(f => !f.gone);
+    game.merges++;
+    game.biggest = Math.max(game.biggest, nt);
+    const pts = SPECIES[nt].pts * mult;
+    game.score += pts;
+    floaters(mx, my - nf.r - 6, '+' + pts, '#e0533f', 14 + Math.min(14, nt));
+    boom(mx, my, SPECIES[nt].body, 12 + nt * 2);
+    fuse(mt);
+    game.shake = Math.min(3 + nt * 1.5, 18);
+    if (nt === SPECIES.length - 1 && !game.watermelon) {
+      game.watermelon = true;
+      banner('WATERMELON ACHIEVED 🍉 A LEGEND WALKS AMONG FRUIT');
+      rings.push({ x: mx, y: my, r: 20, max: 300, life: .7, color: '#57a84d' });
+      SFX.big();
+    }
+  }
+  fruits = fruits.filter(f => !f.gone && f.x > -999);
+}
+
+function boom(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, 6.28), s = rand(60, 300);
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, life: rand(.3, .7), max: .7, color, size: rand(2, 5) });
+  }
+}
+function floaters(x, y, txt, color, size = 14) {
+  floats.push({ x, y, txt, color, size, life: 1 });
+}
+function banner(txt) { game.banner = txt; game.bannerT = 2.6; }
+
+// ================= death =================
+function die() {
+  game.state = 'dead';
+  SFX.over(); game.shake = 16;
+  const isBest = game.score > game.best;
+  if (isBest) { game.best = game.score; localStorage.setItem('meloncholy-best', game.score); }
+  $('dScore').textContent = game.score;
+  $('dFruit').textContent = SPECIES[game.biggest].n;
+  $('dMerges').textContent = game.merges;
+  $('dBest').textContent = isBest ? '★ NEW PERSONAL RECORD ★' : `BEST — ${game.best}`;
+  $('hud').style.display = 'none';
+  setTimeout(() => { if (game.state === 'dead') $('death').classList.remove('hidden'); }, .6e3);
+}
+
+// ================= update =================
+function update(dt) {
+  // drop cooldown
+  dropCd = Math.max(0, dropCd - dt);
+  if (!current && dropCd <= 0) drawCurrent();
+  if (current) {
+    current.x = lerp(current.x, spawn.x, Math.min(dt * 22, 1));
+    current.rot = Math.sin(performance.now() / 300) * .12;
+  }
+  // game.chain decay
+  if (game.chainT > 0) { game.chainT -= dt; if (game.chainT <= 0) game.chain = 0; }
+
+  physics(dt);
+  processFusions();
+
+  // overflow danger
+  let worst = 0;
+  for (const f of fruits) {
+    const top = f.y - f.r;
+    if (top < DANGER && f.y > 0) {
+      const pen = 1 - clamp((top - -30) / (DANGER + 30), 0, 1);
+      f.blink = .5;
+      f.above += dt;
+      worst = Math.max(worst, 1 + f.above * .4);
+    } else f.above = 0;
+  }
+  $('warn').style.opacity = (worst > 0 && Date.now() % 400 < 260) ? 1 : 0;
+  if (worst >= 1.9) { die(); return; }
+
+  // fx
+  particles = particles.filter(p => {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 700 * dt;
+    p.vx *= .97; p.vy *= .97;
+    p.life -= dt; return p.life > 0;
+  });
+  if (particles.length > 420) particles.splice(0, particles.length - 420);
+  floats = floats.filter(f => { f.y -= 44 * dt; f.life -= dt * 1.05; return f.life > 0; });
+  rings = rings.filter(r => { r.life -= dt; r.r += (r.max - r.r) * dt * 8; return r.life > 0; });
+  game.shake = Math.max(0, game.shake - dt * 60);
+  if (game.bannerT > 0) { game.bannerT -= dt; }
+}
+
+// ================= render =================
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawCrate() {
+  const [fx, fy] = f2s(0, 0);
+  const fw = FIELD.w * view.s, fh = FIELD.h * view.s;
+  const r = 16 * view.s;
+  // crate bg
+  ctx.fillStyle = '#fbf3e2';
+  roundRect(fx, fy, fw, fh, r);
+  ctx.fill();
+  // wood slats
+  ctx.strokeStyle = 'rgba(200,183,158,.4)';
+  ctx.lineWidth = 1.5;
+  for (let yy = fy + fh * .18; yy < fy + fh; yy += fh * .16) {
+    ctx.beginPath(); ctx.moveTo(fx + 8, yy); ctx.lineTo(fx + fw - 8, yy + rand(0, .1)); ctx.stroke();
+  }
+  // danger line
+  const anyNear = fruits.some(f => f.y - f.r < DANGER + 40);
+  const pulse = anyNear ? (Math.sin(performance.now() / 90) * .5 + .5) : 0;
+  const [lx, ly] = f2s(0, DANGER);
+  ctx.strokeStyle = anyNear ? `rgba(224,83,63,${.35 + pulse * .5})` : 'rgba(224,83,63,.3)';
+  ctx.lineWidth = anyNear ? 3 : 2;
+  ctx.setLineDash([9 * view.s, 9 * view.s]);
+  ctx.beginPath(); ctx.moveTo(fx + 4, ly); ctx.lineTo(fx + fw - 4, ly); ctx.stroke();
+  ctx.setLineDash([]);
+  // little flag
+  ctx.fillStyle = anyNear ? '#e0533f' : '#c9b394';
+  ctx.font = `900 ${12 * view.s}px Nunito`;
+  ctx.fillText('DO NOT CROSS', fx + 10, ly - 6 * view.s);
+  // crate walls
+  ctx.strokeStyle = '#3a2b20';
+  ctx.lineWidth = 6 * view.s;
+  roundRect(fx, fy, fw, fh, r);
+  ctx.stroke();
+}
+
+function drawFruit(f) {
+  const [px, py] = f2s(f.x, f.y);
+  const sp = SPECIES[f.tier];
+  const R = f.r * view.s;
+  const sq = f.squish;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(f.rot);
+  ctx.scale(1 + sq * .28, 1 - sq * .28);
+
+  // body
+  ctx.fillStyle = f.above > 0 ? `rgba(255,${120 + Math.floor(Math.sin(performance.now() / 60) * 60)},100,.9)` : sp.body;
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.29); ctx.fill();
+  // inner shading
+  ctx.fillStyle = sp.dark;
+  ctx.globalAlpha = .28;
+  ctx.beginPath();
+  ctx.arc(R * .12, R * .18, R * .82, 0, 6.29);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  // rim light
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
+  ctx.lineWidth = R * .06;
+  ctx.beginPath(); ctx.arc(0, 0, R * .9, -2.4, -1.2); ctx.stroke();
+
+  // species-specific detail
+  if (f.tier === 10 || f.tier === 9) {
+    // melon stripes
+    ctx.strokeStyle = f.tier === 10 ? 'rgba(38,92,38,.8)' : 'rgba(80,130,50,.65)';
+    ctx.lineWidth = R * .09;
+    for (let k = 0; k < 6; k++) {
+      const a = -2.2 + k * .85;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R);
+      ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.29); ctx.stroke();
+  }
+  if (f.tier === 7) {
+    // peach crease
+    ctx.strokeStyle = sp.dark; ctx.lineWidth = R * .05;
+    ctx.beginPath(); ctx.moveTo(0, -R); ctx.quadraticCurveTo(R * .3, 0, 0, R); ctx.stroke();
+  }
+  if (f.tier === 8) {
+    // pineapple crosshatch
+    ctx.strokeStyle = 'rgba(150,115,30,.4)'; ctx.lineWidth = R * .04;
+    for (let k = -2; k <= 2; k++) {
+      ctx.beginPath(); ctx.arc(0, 0, R * Math.abs(k) * .25 + R * .3, 0, 6.29); ctx.stroke();
+    }
+  }
+  if (f.tier === 0) {
+    // cherry stem
+    ctx.strokeStyle = '#5b7f34'; ctx.lineWidth = R * .18;
+    ctx.beginPath();
+    ctx.moveTo(0, -R * .55);
+    ctx.quadraticCurveTo(R * .3, -R * 1.2, R * .1, -R * 1.3);
+    ctx.stroke();
+  }
+  if (f.tier === 2) {
+    // grape highlight bunches
+    ctx.strokeStyle = 'rgba(60,20,110,.3)'; ctx.lineWidth = R * .05;
+    ctx.beginPath(); ctx.arc(0, 0, R * .62, 0, 6.29); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R * .34, 0, 6.29); ctx.stroke();
+  }
+
+  // face
+  drawFace(f, sp, R);
+  ctx.restore();
+}
+
+function drawFace(f, sp, R) {
+  const eyeY = -R * .05, eyeDx = R * .38, eyeR = R * .13;
+  const look = clamp(f.vx / 160, -1, 1);
+  // blink
+  f.blinkT -= 1 / 60;
+  if (f.blinkT <= 0) { f.blink = .12; f.blinkT = rand(2, 6); }
+  f.blink = Math.max(0, f.blink - 1 / 60);
+  const closed = f.blink > 0;
+
+  ctx.fillStyle = '#2f2018';
+  if (sp.face === 'cool') {
+    // sunglasses
+    ctx.fillStyle = '#1d1208';
+    ctx.fillRect(-eyeDx - eyeR * 1.6, eyeY - eyeR * 1.7, (eyeDx + eyeR * 1.6) * 2, eyeR * 3.2);
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.fillRect(-eyeDx - eyeR * 1.2, eyeY - eyeR * 1.1, eyeR * 2, eyeR * .7);
+  } else if (closed) {
+    ctx.strokeStyle = '#2f2018'; ctx.lineWidth = R * .05;
+    ctx.beginPath(); ctx.moveTo(-eyeDx - eyeR, eyeY); ctx.lineTo(-eyeDx + eyeR, eyeY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(eyeDx - eyeR, eyeY); ctx.lineTo(eyeDx + eyeR, eyeY); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(-eyeDx + look * R * .07, eyeY, eyeR, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(eyeDx + look * R * .07, eyeY, eyeR, 0, 6.29); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-eyeDx + look * R * .07 - eyeR * .3, eyeY - eyeR * .35, eyeR * .3, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(eyeDx + look * R * .07 - eyeR * .3, eyeY - eyeR * .35, eyeR * .3, 0, 6.29); ctx.fill();
+  }
+  // mouth
+  ctx.strokeStyle = '#2f2018';
+  ctx.lineWidth = R * .055;
+  const my = R * .38;
+  ctx.beginPath();
+  if (sp.face === 'happy') ctx.arc(0, my * .8, R * .22, .25, Math.PI - .25);
+  else if (sp.face === 'flat') { ctx.moveTo(-R * .16, my); ctx.lineTo(R * .16, my); }
+  else if (sp.face === 'worried') ctx.arc(0, my * 1.2, R * .18, Math.PI + .4, -0.4);
+  else if (sp.face === 'cool') { ctx.moveTo(-R * .2, my); ctx.lineTo(R * .2, my); ctx.quadraticCurveTo(0, my + R * .08, R * .2, my); }
+  ctx.stroke();
+  // blush
+  ctx.fillStyle = 'rgba(255,120,120,.25)';
+  ctx.beginPath(); ctx.arc(-eyeDx * 1.25, R * .18, R * .12, 0, 6.29); ctx.fill();
+  ctx.beginPath(); ctx.arc(eyeDx * 1.25, R * .18, R * .12, 0, 6.29); ctx.fill();
+}
+
+function render() {
+  ctx.save();
+  const sh = game.shake;
+  if (sh > 0) ctx.translate(rand(-sh, sh) * .5, rand(-sh, sh) * .5);
+
+  // bg
+  ctx.fillStyle = '#f7ecd7';
+  ctx.fillRect(-40, -40, W + 80, H + 80);
+  // bg fruits decor (faint circles)
+  ctx.fillStyle = 'rgba(240,220,190,.55)';
+  for (let i = 0; i < 7; i++) {
+    const dx = 60 + i * (W / 6.4);
+    const dy = 40 + (i % 4) * 150 + 20;
+    ctx.beginPath(); ctx.arc(dx, dy, 30 + i * 5, 0, 6.29); ctx.fill();
+  }
+
+  drawCrate();
+
+  // particles under fruits
+  for (const p of particles) {
+    const [px, py] = f2s(p.x, p.y);
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(px, py, p.size * view.s, 0, 6.29); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  for (const f of fruits) drawFruit(f);
+
+  // held fruit
+  if (current && game.state === 'play') {
+    if (dropCd <= 0) drawFruit(current);
+    else {
+      const [px, py] = f2s(current.x, 44);
+      ctx.globalAlpha = .35;
+      drawFruit(current);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // rings
+  for (const r of rings) {
+    const [rx, ry] = f2s(r.x, r.y);
+    ctx.globalAlpha = clamp(r.life /.7, 0, 1);
+    ctx.strokeStyle = r.color; ctx.lineWidth = 5 * view.s;
+    ctx.beginPath(); ctx.arc(rx, ry, r.r * view.s, 0, 6.29); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // floats
+  for (const f of floats) {
+    const [px, py] = f2s(f.x, f.y);
+    ctx.globalAlpha = clamp(f.life, 0, 1);
+    ctx.fillStyle = f.color;
+    ctx.font = `900 ${f.size * view.s}px Nunito`;
+    ctx.textAlign = 'center';
+    ctx.fillText(f.txt, px, py);
+  }
+  ctx.globalAlpha = 1; ctx.textAlign = 'left';
+
+  // next queue (to the right of crate)
+  if (game.state === 'play') drawQueue();
+
+  // banner
+  if (game.bannerT > 0 && game.banner) {
+    ctx.globalAlpha = clamp(game.bannerT, 0, 1);
+    ctx.fillStyle = '#3a2b20';
+    ctx.font = `900 ${Math.min(22, W * .035)}px Nunito`;
+    ctx.textAlign = 'center';
+    ctx.fillText(game.banner, W / 2, view.oy - 34);
+    ctx.globalAlpha = 1; ctx.textAlign = 'left';
+  }
+  ctx.restore();
+}
+
+function drawQueue() {
+  const [fx, fy] = f2s(FIELD.w, 0);
+  const fw = FIELD.w * view.s;
+  // hand emoji corner
+  ctx.fillStyle = '#8a7663';
+  ctx.font = `700 ${10 * view.s}px Nunito`;
+  ctx.fillText('NEXT', fx + 14, fy + 12 * view.s);
+  for (let i = 0; i < Math.min(2, nextQ.length); i++) {
+    const t = nextQ[i];
+    const sp = SPECIES[t];
+    const R = sp.r * view.s * .5;
+    const cx = fx + 34 * view.s + i * 52 * view.s;
+    const cy = fy + 42 * view.s;
+    ctx.globalAlpha = i === 0 ? 1 : .45;
+    ctx.fillStyle = sp.body;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.29); ctx.fill();
+    ctx.fillStyle = '#2f2018';
+    ctx.beginPath(); ctx.arc(cx - R * .35, cy - R * .1, R * .12, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + R * .35, cy - R * .1, R * .12, 0, 6.29); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function hud() {
+  $('score').textContent = game.score;
+  $('bestN').textContent = game.best;
+}
+
+// ================= start / input =================
+function start() {
+  fruits = []; particles = []; floats = []; rings = []; fuseQueue.length = 0;
+  Object.assign(game, { state: 'play', score: 0, merges: 0, biggest: 0, chain: 0, chainT: 0, shake: 0, banner: null, bannerT: 0, watermelon: false });
+  current = null; nextQ = [
+    SPAWN_TABLE[Math.floor(Math.random() * SPAWN_TABLE.length)],
+    SPAWN_TABLE[Math.floor(Math.random() * SPAWN_TABLE.length)]
+  ];
+  dropCd = 0; overflowT = 0;
+  $('title').classList.add('hidden');
+  $('death').classList.add('hidden');
+  $('hud').style.display = 'block';
+  drawCurrent();
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  SFX.pick();
+}
+$('startBtn').onclick = start;
+$('retryBtn').onclick = start;
+
+let pointerDown = false;
+cvs.addEventListener('pointermove', e => {
+  if (game.state === 'play' && current) {
+    spawn.x = clamp(s2fx(e.clientX), current.r + 2, FIELD.w - current.r - 2);
+    spawn.tx = spawn.x;
+  }
+});
+cvs.addEventListener('pointerdown', e => {
+  pointerDown = true;
+  if (game.state === 'play' && current) {
+    spawn.x = clamp(s2fx(e.clientX), current.r + 2, FIELD.w - current.r - 2);
+    spawn.tx = spawn.x;
+  }
+});
+cvs.addEventListener('pointerup', e => {
+  if (pointerDown && game.state === 'play') doDrop();
+  pointerDown = false;
+});
+
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'm') {
+    muted = !muted;
+    $('mute').textContent = `[M] SOUND: ${muted ? 'OFF' : 'ON'}`;
+  }
+  if (k === ' ' || k === 'enter') {
+    e.preventDefault();
+    if (game.state === 'menu') start();
+    else if (game.state === 'dead' && !$('death').classList.contains('hidden')) start();
+    else if (game.state === 'play') doDrop();
+  }
+  if ((k === 'arrowleft' || k === 'a') && current) { spawn.x = clamp(spawn.x - current.r * 1.2, current.r + 2, FIELD.w - current.r - 2); spawn.tx = spawn.x; }
+  if ((k === 'arrowright' || k === 'd') && current) { spawn.x = clamp(spawn.x + current.r * 1.2, current.r + 2, FIELD.w - current.r - 2); spawn.tx = spawn.x; }
+});
+
+document.addEventListener('visibilitychange', () => lastF = performance.now());
+let lastF = performance.now();
+function loop(now) {
+  let dt = Math.min((now - lastF) / 1000, .05);
+  lastF = now;
+  if (game.state === 'play') update(dt);
+  render();
+  if (game.state !== 'menu') hud();
+  requestAnimationFrame(loop);
+}
+$('bestN').textContent = game.best;
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
