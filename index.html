@@ -3,489 +3,240 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FROST ARCADE — Three Machines, No Quarters</title>
+<title>PULP FUSION — Say 'Crushed' One More Time</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Archivo+Black&family=Orbitron:wght@500;800&family=Nunito:wght@700;900&family=VT323&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Archivo+Black&family=Nunito:wght@700;900&family=VT323&display=swap');
 
   * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
   body {
-    background:#08090b; color:#e8e4da; font-family:'Archivo', sans-serif;
-    overflow-x:hidden;
+    min-height:100vh; overflow-x:hidden;
+    background:#f7ecd7; color:#3a2b20;
+    font-family:'Archivo', sans-serif; position:relative;
   }
+  a { color:inherit; }
 
-  /* ── ambience ── */
-  body::before {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-    background:
-      radial-gradient(ellipse 80% 55% at 50% -12%, rgba(110,160,255,.16), transparent 62%),
-      radial-gradient(ellipse 60% 45% at 8% 108%, rgba(140,190,255,.07), transparent 60%),
-      radial-gradient(ellipse 60% 45% at 94% 106%, rgba(90,130,240,.07), transparent 60%);
-  }
-  /* frost creeping from the screen corners */
-  body::after {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:3; opacity:.05;
-    background:
-      radial-gradient(circle at 0% 0%, #cfe4ff 0%, transparent 26%),
-      radial-gradient(circle at 100% 0%, #cfe4ff 0%, transparent 26%),
-      radial-gradient(circle at 0% 100%, #cfe4ff 0%, transparent 20%),
-      radial-gradient(circle at 100% 100%, #cfe4ff 0%, transparent 20%);
-    -webkit-mask-image:radial-gradient(ellipse at 50% 50%, transparent 58%, #000 98%);
-    mask-image:radial-gradient(ellipse at 50% 50%, transparent 58%, #000 98%);
-  }
-  /* cold checker floor */
-  .floor {
-    position:fixed; left:-40%; right:-40%; bottom:-150px; height:360px; z-index:0;
-    background:repeating-conic-gradient(#10141c 0% 25%, #0a0d13 0% 50%);
-    background-size:130px 130px;
-    transform:perspective(520px) rotateX(58deg);
-    opacity:.5; pointer-events:none;
-    mask-image:linear-gradient(transparent, #000 48%);
-    -webkit-mask-image:linear-gradient(transparent, #000 48%);
-  }
-
-  /* ── snow (two parallax layers) ── */
-  #snow { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
-  .flake {
-    position:absolute; top:-14px; color:#e6efff; pointer-events:none;
-    animation:fall linear infinite, sway ease-in-out infinite alternate;
-    text-shadow:0 0 7px #aac4ff7c;
-  }
-  @keyframes fall {
-    from { transform:translateY(-4vh); }
-    to   { transform:translateY(106vh); }
-  }
-  @keyframes sway { from { margin-left:-14px; } to { margin-left:22px; } }
-
-  /* ── attract-mode ticker ── */
-  .ticker {
-    position:fixed; top:0; left:0; right:0; z-index:6; height:36px; display:flex; align-items:center;
-    background:linear-gradient(#0b1018, #0b1018 70%, #131a25);
-    border-bottom:1px solid #bfe3ff22;
-    box-shadow:0 1px 0 #000a, inset 0 -8px 22px -12px #4c7ac055;
-    overflow:hidden; white-space:nowrap;
-  }
-  .ticker.in { animation:tick 38s linear infinite; will-change:transform; }
-  @keyframes tick { to { transform:translateX(-50%); } }
-  .ticker span {
-    display:inline-block; padding:0 26px;
-    font-family:'VT323', monospace; font-size:19px; letter-spacing:.06em; color:#9fb4d8;
-  }
-  .ticker b { color:#bfe3ff; text-shadow:0 0 9px #6fa3e866; }
-  .ticker .hi { color:#ffe95e; text-shadow:0 0 9px #ffe95e55; }
+  /* ── decor: drift of fruit falling forever ── */
+  #fruitFall { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .ff { position:absolute; top:-60px; border-radius:50%;
+        box-shadow:inset -8px -12px 0 rgba(58,43,32,.14);
+        animation:ff-fall linear infinite, ff-sway ease-in-out infinite alternate; opacity:.85; }
+  @keyframes ff-fall { from { transform:translateY(-8vh) rotate(0); } to { transform:translateY(108vh) rotate(220deg); } }
+  @keyframes ff-sway { from { margin-left:-18px; } to { margin-left:26px; } }
 
   /* ── header ── */
-  header { position:relative; z-index:4; text-align:center; padding:64px 20px 26px; }
+  header { position:relative; z-index:2; text-align:center; padding:64px 20px 24px; }
   .est {
-    font-family:'VT323', monospace; letter-spacing:.5em; font-size:15px; color:#6e7c95;
-    text-transform:uppercase;
+    font-family:'VT323', monospace; font-size:15px; letter-spacing:.45em;
+    color:#a08d77; text-transform:uppercase;
   }
-  .marquee {
-    display:inline-block; font-family:Archivo Black; text-transform:uppercase;
-    font-size:clamp(44px,9.5vw,104px); letter-spacing:.015em; line-height:1;
-    margin-top:8px;
-    background:linear-gradient(180deg, #ffffff 0%, #dcebff 34%, #8ab5f2 60%, #2e5b8c 100%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 0 6px #9ccaff90) drop-shadow(0 0 30px #5f9fe855)
-           drop-shadow(5px 5px 0 #102d49) drop-shadow(8px 8px 0 #0b0e13);
-    transform:rotate(-2deg); position:relative;
+  .logo {
+    display:inline-block; margin-top:10px;
+    font-family:'Archivo Black', sans-serif;
+    font-size:clamp(44px,9.5vw,104px); line-height:.95; letter-spacing:.01em;
+    color:#3a2b20; transform:rotate(-2deg); position:relative;
+    text-shadow:4px 4px 0 #e0533f, 8px 8px 0 #f2d9b4;
   }
-  /* shimmer sweep across the letters */
-  .marquee::after {
-    content:''; position:absolute; inset:-6% -3%;
-    background:linear-gradient(115deg, transparent 42%, rgba(255,255,255,.5) 50%, transparent 58%);
-    mix-blend-mode:screen; pointer-events:none; border-radius:8px;
-    animation:shimmer 4.2s ease-in-out infinite;
-  }
-  @keyframes shimmer {
-    0%, 62% { transform:translateX(-110%); opacity:0; }
-    72%     { opacity:1; }
-    86%, 100% { transform:translateX(110%); opacity:0; }
-  }
-  .icicles {
-    display:block; margin:-8px auto 0; height:18px; width:min(600px, 72vw);
-    background:
-      conic-gradient(from 135deg at 50% 0%, #b8d4f6 25%, transparent 0) 0 0 / 14px 14px repeat-x,
-      conic-gradient(from 135deg at 50% 0%, #79a8e8 25%, transparent 0) 7px 7px / 14px 14px repeat-x;
-    opacity:.75; margin-left:auto; margin-right:auto;
-    mask-image:linear-gradient(#000 68%, transparent);
-    -webkit-mask-image:linear-gradient(#000 68%, transparent);
-  }
-  .sign-row { margin-top:22px; display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
-  .open-sign {
-    display:inline-flex; align-items:center; gap:10px;
-    font-family:'VT323', monospace; font-size:22px; color:#bfe3ff;
-    border:2px solid #bfe3ff3d; border-radius:4px; padding:7px 20px;
-    background:#bfe3ff0a; text-shadow:0 0 8px #9ccaff93;
-    box-shadow:0 0 18px -6px #6fa3e866;
-  }
-  .open-sign .dot {
-    width:9px; height:9px; border-radius:50%; background:#bfe3ff;
-    box-shadow:0 0 10px #bfe3ff; animation:blink 1.4s infinite;
-  }
-  @keyframes blink { 50% { opacity:.14; } }
+  .logo em { font-style:normal; color:#e0533f; text-shadow:4px 4px 0 #3a2b20, 8px 8px 0 #f2d9b4; }
+  /* bobbing letters */
+  .logo .ripple { display:inline-block; animation:bop 2.4s ease-in-out infinite; }
+  .logo .ripple:nth-child(odd) { animation-delay:.15s; }
+  @keyframes bop { 50% { transform:translateY(-7px) rotate(-4deg); } }
   .tagline {
-    margin-top:22px; color:#7e8aa0; font-size:clamp(12px, 2vw, 15px);
-    letter-spacing:.32em; text-transform:uppercase;
+    margin-top:26px; font-family:'Nunito'; font-weight:900;
+    font-size:clamp(13px,2.4vw,17px); letter-spacing:.28em; color:#a04b3b;
   }
-  .tagline b { color:#dfe9ff; font-weight:700; }
-  .counter {
-    margin-top:12px; font-family:'VT323', monospace; color:#7182a0; font-size:19px;
-  }
-  .counter b { color:#bfe3ff; }
+  .tagline::before, .tagline::after { content:' ✦ '; color:#e0533f; }
 
-  /* ── hall ── */
-  .hall-title {
-    position:relative; z-index:4; text-align:center; margin:34px auto 4px;
-    font-family:'VT323', monospace; font-size:22px; color:#66748e; letter-spacing:.4em;
+  /* ── play CTA ── */
+  .playwrap { position:relative; z-index:2; text-align:center; margin-top:30px; }
+  .play {
+    display:inline-block; text-decoration:none;
+    font-family:'Archivo Black'; font-size:clamp(19px,3.4vw,26px); letter-spacing:.1em;
+    color:#fff7ec; background:#e0533f; padding:19px 64px; border-radius:60px;
+    box-shadow:0 7px 0 #a83324, 0 16px 30px rgba(58,43,32,.28);
+    transition:transform .12s, box-shadow .12s, background .12s;
   }
-  .hall { position:relative; z-index:4; max-width:1180px; margin:26px auto 30px; padding:0 24px;
-          display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px;
-          perspective:1400px; }
+  .play:hover { transform:translateY(-3px) scale(1.02); background:#ef5d47; box-shadow:0 10px 0 #a83324, 0 20px 36px rgba(58,43,32,.32); }
+  .play:active { transform:translateY(4px); box-shadow:0 3px 0 #a83324; }
+  .playhint {
+    margin-top:14px; font-family:'VT323', monospace; font-size:16px; color:#a08d77;
+    letter-spacing:.25em;
+  }
+  .playhint b { color:#e0533f; animation:blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity:.15; } }
 
-  /* ── the cabinet ── */
-  .cabinet {
-    position:relative; border-radius:16px 16px 10px 10px; overflow:hidden;
-    background:linear-gradient(#141822, #0e1118 60%, #0b0d12);
-    border:1px solid #bfe3ff1c;
-    text-decoration:none; color:inherit; display:flex; flex-direction:column;
-    box-shadow:0 18px 40px -18px #000c, inset 0 1px 0 #ffffff0d;
-    transition:transform .3s cubic-bezier(.2,.8,.25,1), border-color .3s, box-shadow .3s;
-    cursor:pointer; outline:none;
-    opacity:0; transform:translateY(34px);
+  /* ── score plaque ── */
+  .plaque {
+    position:relative; z-index:2; margin:44px auto 0; width:max-content; max-width:90vw;
+    background:#fff7ec; border:3px solid #3a2b20; border-radius:18px;
+    padding:16px 40px; text-align:center; transform:rotate(-1deg);
+    box-shadow:0 6px 0 #e8d9bd, 0 14px 30px rgba(58,43,32,.12);
   }
-  .cabinet.in { opacity:1; transform:translateY(0); transition:opacity .7s var(--d,0s), transform .7s cubic-bezier(.2,.8,.25,1) var(--d,0s), border-color .3s, box-shadow .3s; }
-  .cabinet.in:hover, .cabinet.in:focus-visible {
-    transform:translateY(-10px) rotate(-.5deg) scale(1.02);
-    border-color:var(--glow);
-    box-shadow:0 30px 60px -22px #000e, 0 0 34px -8px var(--glow), inset 0 1px 0 #ffffff10;
-  }
-  /* neon light strip along cabinet top */
-  .cabinet::before {
-    content:''; position:absolute; top:0; left:10%; right:10%; height:3px; border-radius:3px;
-    background:linear-gradient(90deg, transparent, var(--ac2), transparent);
-    opacity:.4; transition:opacity .3s;
-  }
-  .cabinet:hover::before { opacity:1; box-shadow:0 0 18px var(--ac2); }
-  /* glass floor reflection under cabinet */
-  .cabinet::after {
-    content:''; position:absolute; left:4%; right:4%; bottom:-30px; height:30px; z-index:-1;
-    background:linear-gradient(transparent, var(--glow-dim));
-    transform:scaleY(-1); border-radius:16px; opacity:.5; filter:blur(10px);
-    pointer-events:none;
-  }
+  .plaque .l { font-family:'Nunito'; font-weight:700; font-size:11px; letter-spacing:.35em; color:#8a7663; }
+  .plaque .v { font-family:'Archivo Black'; font-size:36px; margin-top:2px; color:#3a2b20; }
+  .plaque .v small { font-size:15px; color:#a08d77; }
 
-  /* screen bezel */
-  .bezel {
-    margin:16px 16px 0; border-radius:10px; padding:7px;
-    background:linear-gradient(#1e2430, #12161e);
-    border:1px solid #ffffff10; box-shadow:inset 0 2px 10px #0009;
+  /* ── versions shelf ── */
+  .shelfwrap { position:relative; z-index:2; max-width:900px; margin:56px auto 0; padding:0 22px 20px; }
+  .shelftitle {
+    display:flex; align-items:center; gap:16px;
+    font-family:'VT323', monospace; font-size:21px; letter-spacing:.35em; color:#a08d77;
   }
-  .screen-art { position:relative; height:190px; overflow:hidden; border-radius:5px; }
-  .screen-art::after {
-    content:''; position:absolute; inset:0; pointer-events:none;
-    background:
-      repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.14) 2px 3px),
-      linear-gradient(115deg, rgba(255,255,255,.11) 0%, transparent 24%);
-  }
-  /* screen turns on when hovering */
-  .cabinet:hover .screen-art { filter:brightness(1.14) saturate(1.08); }
+  .shelftitle::before, .shelftitle::after { content:''; flex:1; height:2px; background:#e8d9bd; }
+  .shelf { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:20px; margin-top:24px; }
 
-  /* — NEON DRIFT art — */
-  .art-drift { background:linear-gradient(#1b0b3a 0%, #57166e 55%, #ff5f8a 100%); }
-  .art-drift .sun {
-    position:absolute; left:50%; top:34%; width:74px; height:74px; border-radius:50%;
-    transform:translate(-50%,-50%);
-    background:linear-gradient(#ffdd7e, #ff7bc8 60%, #b53cff);
-    box-shadow:0 0 40px #ff7bc888;
+  .ver {
+    position:relative; text-decoration:none; display:block;
+    background:#fff7ec; border:3px solid #3a2b20; border-radius:16px;
+    padding:20px 20px 18px; text-align:left;
+    box-shadow:0 5px 0 #e8d9bd;
+    transition:transform .15s, box-shadow .15s, border-color .15s;
   }
-  .art-drift .sun::after {
-    content:''; position:absolute; inset:0; border-radius:50%;
-    background:repeating-linear-gradient(0deg, transparent 0 7px, #57166e 7px 9px);
-    clip-path:inset(45% 0 0 0);
+  .ver:hover { transform:translateY(-5px) rotate(-.6deg); box-shadow:0 10px 0 #e8d9bd, 0 18px 34px rgba(58,43,32,.14); }
+  .ver .badge {
+    position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+    background:#3a2b20; color:#fff7ec;
+    font-family:'VT323', monospace; font-size:12px; letter-spacing:.3em;
+    padding:3px 14px 4px; border-radius:20px; white-space:nowrap;
   }
-  .art-drift .grid {
-    position:absolute; left:-60%; right:-60%; bottom:-84px; height:200px;
-    background:repeating-conic-gradient(transparent 0% 25%, rgba(15,240,255,.5) 0% 50%);
-    background-size:64px 64px;
-    transform:perspective(160px) rotateX(60deg);
-    mask-image:linear-gradient(transparent, #000 70%);
-    -webkit-mask-image:linear-gradient(transparent, #000 70%);
-    animation:roll 1.6s linear infinite;
+  .ver .rib {
+    position:absolute; top:-12px; right:14px; transform:rotate(8deg);
+    background:#e0533f; color:#fff7ec;
+    font-family:'Nunito'; font-weight:900; font-size:10.5px; letter-spacing:.2em;
+    padding:4px 12px; border-radius:8px;
   }
-  @keyframes roll { to { background-position-y:64px; } }
-  .art-drift .ship {
-    position:absolute; left:50%; bottom:16px; width:0; height:0;
-    transform:translateX(-50%); filter:drop-shadow(0 0 8px #0ff0ff);
-    animation:bumpy 3s ease-in-out infinite;
+  .ver .name { font-family:'Archivo Black'; font-size:20px; letter-spacing:.02em; color:#3a2b20; }
+  .ver .name em { font-style:normal; color:#e0533f; }
+  .ver .tagline { margin-top:7px; font-size:13px; font-weight:700; color:#8a7663; line-height:1.55; }
+  .ver .foot {
+    margin-top:14px; display:flex; justify-content:space-between; align-items:center;
+    font-family:'VT323', monospace; font-size:14px; letter-spacing:.15em; color:#a08d77;
   }
-  @keyframes bumpy { 50% { transform:translateX(-46%) rotate(2deg); } }
-  .art-drift .ship::before {
-    content:''; display:block; width:34px; height:12px;
-    background:#0d2a3a; border:2px solid #0ff0ff; border-radius:8px 8px 3px 3px;
-  }
-  .art-drift .ship::after {
-    content:''; position:absolute; top:-7px; left:12px; width:8px; height:6px;
-    border-radius:50%; background:#ff2ea6;
-  }
+  .ver .foot b { color:#e0533f; }
+  .ver.og { border-color:#e0533f; box-shadow:0 5px 0 #a83324; }
+  .ver.og:hover { box-shadow:0 10px 0 #a83324, 0 18px 34px rgba(58,43,32,.16); }
 
-  /* — VOIDSWARM art — */
-  .art-swarm { background:#060907; }
-  .art-swarm .blob { position:absolute; border-radius:48% 52% 55% 45% / 60% 42% 58% 40%; animation:wobble 3s ease-in-out infinite; }
-  .art-swarm .b1 { left:20%; top:26%; width:52px; height:46px; background:#ff4fd8; box-shadow:0 0 18px #ff4fd899; }
-  .art-swarm .b2 { left:58%; top:40%; width:38px; height:34px; background:#ffd24f; box-shadow:0 0 14px #ffd24f88; animation-delay:-1s; }
-  .art-swarm .b3 { left:66%; top:16%; width:64px; height:56px; background:#4fd8ff; box-shadow:0 0 22px #4fd8ff88; animation-delay:-2s; }
-  .art-swarm .b4 { left:36%; top:62%; width:26px; height:24px; background:#ff3b3b; box-shadow:0 0 10px #ff3b3b99; animation-delay:-1.6s; }
-  @keyframes wobble { 50% { border-radius:56% 44% 42% 58% / 46% 56% 44% 54%; transform:rotate(8deg) scale(.96); } }
-  .art-swarm .core { position:absolute; border-radius:50%; background:#060907; }
-  .art-swarm .b1 .core { inset:34% 30%; } .art-swarm .b3 .core { inset:36% 30%; }
-  .art-swarm .you {
-    position:absolute; right:16%; bottom:14%; width:26px; height:26px; border-radius:50%;
-    background:#0e1a0e; border:2.5px solid #7cff4f; box-shadow:0 0 14px #7cff4f88;
+  .ver.empty {
+    border-style:dashed; border-width:2px; border-color:#d8c6a8;
+    box-shadow:none; background:transparent; color:#b3a38b;
+    display:flex; flex-direction:column; justify-content:center; text-align:center; gap:6px;
+    cursor:default; min-height:150px;
   }
-  .art-swarm .you::after {
-    content:''; position:absolute; left:-14px; top:9px; width:16px; height:3px;
-    background:#c8ff8f; border-radius:2px;
-  }
+  .ver.empty:hover { transform:none; box-shadow:none; }
+  .ver.empty .name { color:#b9a88d; font-size:16px; }
+  .ver.empty .tagline { color:#c3b39a; font-family:'VT323', monospace; letter-spacing:.25em; font-size:14px; }
 
-  /* — PULP FUSION art — */
-  .art-pulp { background:#f7ecd7; }
-  .art-pulp .crate {
-    position:absolute; left:16%; right:16%; bottom:0; top:22%;
-    background:#fbf3e2; border:5px solid #3a2b20; border-radius:10px;
+  /* ── footer ── */
+  footer {
+    position:relative; z-index:2; margin-top:70px; padding:26px 20px 40px;
+    text-align:center; border-top:3px solid #e8d9bd;
   }
-  .art-pulp .f { position:absolute; border-radius:50%; box-shadow:inset -6px -8px 0 rgba(0,0,0,.12); }
-  .art-pulp .f::before, .art-pulp .f::after {
-    content:''; position:absolute; top:38%; width:14%; height:20%;
-    background:#2f2018; border-radius:50%;
+  .lab {
+    font-family:'Nunito'; font-weight:700; font-size:12px; letter-spacing:.35em;
+    color:#a08d77; text-transform:uppercase;
   }
-  .art-pulp .f::before { left:28%; } .art-pulp .f::after { right:28%; }
-  .art-pulp .f1 { left:22%; bottom:14%; width:54px; height:54px; background:#e0475c; }
-  .art-pulp .f2 { left:50%; bottom:10%; width:76px; height:76px; background:#9a5bd6; }
-  .art-pulp .f3 { left:36%; bottom:44%; width:30px; height:30px; background:#f3c93e; }
-  .art-pulp .f4 { right:14%; bottom:12%; width:44px; height:44px; background:#f2913d; animation:peek 2.4s ease-in-out infinite; }
-  @keyframes peek { 50% { transform:translateY(-6px) rotate(-6deg); } }
-  .art-pulp .fall {
-    position:absolute; right:26%; top:-8%; width:36px; height:36px; border-radius:50%;
-    background:#ef5872; box-shadow:inset -5px -7px 0 rgba(0,0,0,.12);
-    animation:drop 1.15s cubic-bezier(.55,0,1,.45) infinite;
-  }
-  @keyframes drop {
-    0% { transform:translateY(-40px); }
-    70% { transform:translateY(120px); }
-    84% { transform:translateY(132px) scaleY(.8); }
-    100% { transform:translateY(126px); opacity:0; }
-  }
-
-  /* control panel */
-  .panel { padding:18px 22px 22px; flex:1; display:flex; flex-direction:column; gap:9px; }
-  .genre-row { display:flex; align-items:center; justify-content:space-between; }
-  .genre {
-    font-family:'VT323', monospace; font-size:16px; letter-spacing:.08em;
-    color:var(--ac2); border:1px dashed var(--glow); padding:2px 10px; border-radius:3px;
-  }
-  .best { font-family:'VT323', monospace; font-size:17px; color:#7d8595; }
-  .best b { color:var(--ac2); text-shadow:0 0 12px var(--glow); }
-  .gtitle { font-family:Archivo Black; font-size:25px; letter-spacing:.03em; color:#fff; }
-  .gtitle em { font-style:normal; color:var(--ac2); }
-  .gdesc { color:#a19b8c; font-size:13.5px; line-height:1.65; }
-  .keys { margin-top:auto; padding-top:14px; display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
-  .key {
-    font-family:'VT323', monospace; font-size:15px; color:#cfc9ba;
-    border:1px solid #ffffff20; border-bottom-width:3px; border-radius:5px;
-    padding:2px 9px; background:linear-gradient(#ffffff0a, #ffffff02);
-  }
-  .pop {
-    margin-left:auto; font-family:'VT323',monospace; color:#5c594f; font-size:15px;
-    animation:blink 1.2s infinite;
-  }
-  .cabinet:hover .pop { color:#ffe95e; text-shadow:0 0 10px #ffe95e66; }
-  /* coin slot at the base */
-  .coinslot {
-    display:flex; justify-content:center; gap:8px; padding:0 0 14px;
-  }
-  .coinslot i {
-    width:9px; height:16px; border-radius:2px; background:#000;
-    border:1px solid #ffffff1e; box-shadow:inset 0 0 6px #000, 0 0 4px var(--glow-dim);
-  }
-
-  .start-hint {
-    position:relative; z-index:4; text-align:center; padding:8px 0 64px;
-    font-family:'VT323', monospace; color:#66748e; font-size:17px; letter-spacing:.3em;
-  }
-  .start-hint b { color:#bfe3ff; animation:blink 1s infinite; }
+  .lab b { color:#3a2b20; font-weight:900; }
+  .lab .dot { color:#e0533f; }
 
   @media (prefers-reduced-motion: reduce) {
     * { animation:none !important; transition:none !important; }
-    .cabinet { opacity:1; transform:none; }
   }
 </style>
 </head>
 <body>
-<div class="floor"></div>
-<div id="snow"></div>
-
-<div class="ticker in" id="ticker"><span id="tickText"></span></div>
+<div id="fruitFall"></div>
 
 <header>
-  <div class="est">FROST'S ESTABLISHMENT · EST. 2026 · OPEN 24/7</div>
-  <div class="marquee">FROST&nbsp;ARCADE</div>
-  <span class="icicles"></span>
-  <div class="sign-row">
-    <div class="open-sign"><span class="dot"></span>OPEN ALL NIGHT — MIND THE FROST</div>
-  </div>
-  <div class="tagline">THREE CABINETS · ONE <b>HIGH SCORE</b> TO RULE THEM ALL</div>
-  <div class="counter">COLD SAVINGS ON DISPLAY: <b id="counter">∞</b></div>
+  <div class="est">A FRESH CRATE, DAILY · EST. 2026</div>
+  <div class="logo">PULP&nbsp;<em><span class="ripple">F</span><span class="ripple">U</span><span class="ripple">S</span><span class="ripple">I</span><span class="ripple">O</span><span class="ripple">N</span></em></div>
+  <div class="tagline">SAY 'CRUSHED' ONE MORE TIME.</div>
 </header>
 
-<div class="hall-title">— SELECT YOUR CABINET —</div>
+<div class="playwrap">
+  <a class="play" href="./pulp-fusion.html">▶&nbsp; PLAY ORIGINAL</a>
+  <div class="playhint">AIM & CLICK TO DROP · <b>ONE PULSE AT A TIME</b></div>
+</div>
 
-<main class="hall">
+<div class="plaque">
+  <div class="l">LEGENDARY BEST — ORIGINAL</div>
+  <div class="v"><span id="bestScore">—</span> <small>PTS</small></div>
+</div>
 
-  <!-- NEON DRIFT -->
-  <a class="cabinet" href="./neon-drift.html" style="--glow:#0ff0ff55; --glow-dim:#0ff0ff14; --ac:#0ff0ff; --ac2:#ff2ea6; --d:.05s">
-    <div class="bezel"><div class="screen-art art-drift">
-      <div class="sun"></div>
-      <div class="grid"></div>
-      <div class="ship"></div>
-    </div></div>
-    <div class="panel">
-      <div class="genre-row"><span class="genre">SYNTHWAVE RUNNER</span><span class="best">BEST — <b data-score="neon-drift-best">—</b></span></div>
-      <div class="gtitle">NEON <em>DRIFT</em></div>
-      <div class="gdesc">Hover-ship mayhem down an endless synthwave highway. Graze crimson barriers, chain cyan gates, survive the void. The night only gets faster.</div>
-      <div class="keys"><span class="key">← →</span><span class="key">SHIFT FACE</span><span class="key">↓ CHARGE</span><span class="pop">▸ 1P</span></div>
-    </div>
-    <div class="coinslot"><i></i><i></i></div>
-  </a>
+<div class="shelfwrap">
+  <div class="shelftitle">THE VERSION SHELF</div>
+  <div class="shelf" id="shelf"></div>
+</div>
 
-  <!-- VOIDSWARM -->
-  <a class="cabinet" href="./voidswarm.html" style="--glow:#7cff4f55; --glow-dim:#7cff4f14; --ac:#7cff4f; --ac2:#ff4fd8; --d:.18s">
-    <div class="bezel"><div class="screen-art art-swarm">
-      <div class="blob b1"><span class="core" style="position:absolute;inset:34% 30%;border-radius:50%;background:#060907"></span></div>
-      <div class="blob b2"></div>
-      <div class="blob b3"><span class="core" style="position:absolute;inset:36% 30%;border-radius:50%;background:#060907"></span></div>
-      <div class="blob b4"></div>
-      <div class="you"></div>
-    </div></div>
-    <div class="panel">
-      <div class="genre-row"><span class="genre">ARENA ROGUELITE</span><span class="best">BEST — <b data-score="voidswarm-best">—</b></span></div>
-      <div class="gtitle">VOID<em>SWARM</em></div>
-      <div class="gdesc">They remember you. Survive the swarm, stack 13 evolutions mid-fight, and face THE AMALGAM every 95 seconds. One build, one life.</div>
-      <div class="keys"><span class="key">WASD</span><span class="key">SPACE DASH</span><span class="key">AUTO-FIRE</span><span class="pop">▸ 1P</span></div>
-    </div>
-    <div class="coinslot"><i></i><i></i></div>
-  </a>
-
-  <!-- PULP FUSION -->
-  <a class="cabinet" href="./pulp-fusion.html" style="--glow:#e0533f55; --glow-dim:#e0533f14; --ac:#3a2b20; --ac2:#e0533f; --d:.31s">
-    <div class="bezel"><div class="screen-art art-pulp">
-      <div class="crate"></div>
-      <div class="f f1"></div>
-      <div class="f f2"></div>
-      <div class="f f3"></div>
-      <div class="f f4"></div>
-      <div class="fall"></div>
-    </div></div>
-    <div class="panel">
-      <div class="genre-row"><span class="genre">DROP-MERGE PUZZLE</span><span class="best">BEST — <b data-score="pulp-fusion-best">—</b></span></div>
-      <div class="gtitle">PULP <em>FUSION</em></div>
-      <div class="gdesc">Say 'crushed' one more time. Drop fruit, fuse twins, press the harvest — and never let the crate crest the DO NOT CROSS line. Contains 1 legendary watermelon.</div>
-      <div class="keys"><span class="key">AIM & CLICK</span><span class="key">SPACE DROP</span><span class="key">← → AIM</span><span class="pop">▸ 1P</span></div>
-    </div>
-    <div class="coinslot"><i></i><i></i></div>
-  </a>
-
-</main>
-
-<div class="start-hint">SCORES AUTOSAVE LOCALLY · <b>INSERT NO COIN · CLAIM YOUR BEST</b></div>
+<footer>
+  <div class="lab">PULP FUSION <span class="dot">◆</span> PRODUCT OF <b>AHZAB LAB</b> <span class="dot">◆</span> SERVED FRESH SINCE RIPE</div>
+</footer>
 
 <script>
 (() => {
   const rand = (a, b) => a + Math.random() * (b - a);
 
-  /* ── snow: two parallax layers ── */
-  (function snow() {
-    const box = document.getElementById('snow');
-    const glyphs = ['❄', '❅', '❆', '•'];
-    for (let i = 0; i < 64; i++) {
-      const far = i % 2 === 0;                       // every other flake sits "deeper" in the room
+  /* ── falling fruit decor ── */
+  (function fruitFall() {
+    const box = document.getElementById('fruitFall');
+    const colors = ['#e0475c','#ef5872','#9a5bd6','#f3c93e','#f2913d','#e05a4e','#b9d054','#f6a8b4'];
+    for (let i = 0; i < 22; i++) {
       const f = document.createElement('span');
-      f.className = 'flake';
-      f.textContent = glyphs[i % glyphs.length];
-      const size = far ? rand(7, 12) : rand(13, 20);
+      f.className = 'ff';
+      const s = rand(16, 44);
+      f.style.width = s + 'px'; f.style.height = s + 'px';
       f.style.left = (Math.random() * 100) + 'vw';
-      f.style.fontSize = size.toFixed(1) + 'px';
-      f.style.opacity = (far ? .18 : .45) + rand(0, .3);
-      f.style.zIndex = far ? 1 : 2;
-      f.style.animationDuration = `${(far ? rand(14, 26) : rand(7, 13)).toFixed(1)}s, ${(rand(2.4, 4.5)).toFixed(1)}s`;
-      f.style.animationDelay = `${(-Math.random() * 26).toFixed(1)}s, ${(rand(-4, 0)).toFixed(1)}s`;
+      f.style.background = colors[i % colors.length];
+      f.style.opacity = (rand(.18, .5)).toFixed(2);
+      f.style.animationDuration = `${rand(9, 20).toFixed(1)}s, ${rand(2.6, 5).toFixed(1)}s`;
+      f.style.animationDelay = `${(-Math.random() * 20).toFixed(1)}s, ${rand(-3, 0).toFixed(1)}s`;
       box.appendChild(f);
     }
   })();
 
-  /* ── live hi-scores from each game's localStorage ── */
-  const GAMES = [
-    { key:'neon-drift-best',  name:'NEON DRIFT',  fmt:v => v + ' PTS' },
-    { key:'voidswarm-best',   name:'VOIDSWARM',   fmt:v => v == null ? null : (Math.floor(v / 60) + ':' + String(v % 60).padStart(2, '0')) },
-    { key:'pulp-fusion-best',  name:'PULP FUSION',  fmt:v => v + ' PTS' }
+  /* ── best score ── */
+  let best = null;
+  try { best = localStorage.getItem('pulp-fusion-best'); } catch (e) {}
+  if (best !== null && best !== '') document.getElementById('bestScore').textContent = Number(best).toLocaleString();
+
+  /* ── THE VERSION SHELF ──────────────────────────────────────────────
+     To add a new version of PULP FUSION:
+       1. drop its HTML file in this folder (it will keep its own score
+          key, ideally `pulp-fusion-<id>-best`)
+       2. add ONE line below:
+          { id:'remix', file:'pulp-fusion-remix.html', name:'REMIX',
+            tagline:'...', key:'pulp-fusion-remix-best', live:true }
+     The ORIGINAL is pinned and always playable.                               */
+  const VERSIONS = [
+    { id:'og', file:'pulp-fusion.html', name:'ORIGINAL',
+      tagline:'The classic crush. Aim, drop, fuse — and never let the crate crest the DO NOT CROSS line.',
+      key:'pulp-fusion-best', pinned:true, live:true },
+    // future versions — add the line, the shelf renders it:
+    // { id:'remix', file:'pulp-fusion-remix.html', name:'REMIX', tagline:'…', key:'pulp-fusion-remix-best', live:true },
+    // { id:'blitz',  file:'pulp-fusion-blitz.html',  name:'BLITZ',  tagline:'…', key:'pulp-fusion-blitz-best',  live:true },
   ];
-  const fmtShown = [];
-  let total = 0;
-  for (const g of GAMES) {
-    let raw = null;
-    try { raw = localStorage.getItem(g.key); } catch (e) {}
-    let text = '—';
-    if (raw !== null && raw !== '') {
-      const n = Number(raw) || 0;
-      text = (g.key === 'voidswarm-best') ? g.fmt(n) : g.fmt(n);
-      total += n || 0;
-    } else if (g.key === 'voidswarm-best') { text = '—'; }
-    fmtShown.push(`${g.name}&nbsp;<span class="hi">${text}</span>`);
-    document.querySelectorAll(`[data-score="${g.key}"]`).forEach(el => { el.textContent = text; });
+  const EMPTY_SLOTS = Math.max(0, 3 - VERSIONS.filter(v => v.live).length); // pad the shelf to 3 seats
+
+  const shelf = document.getElementById('shelf');
+  VERSIONS.forEach(v => {
+    const el = document.createElement('a');
+    el.className = 'ver' + (v.pinned ? ' og' : '');
+    el.href = v.file;
+    el.title = v.name + ' — ' + v.tagline;
+    let score = '—';
+    try { const s = localStorage.getItem(v.key); if (s) score = Number(s).toLocaleString(); } catch (e) {}
+    el.innerHTML = `
+      ${v.pinned ? '<span class="badge">OG · PINNED</span>' : ''}
+      <div class="name">${v.name.includes('OG') || v.name.includes('ORIGINAL') ? 'ORIGINAL' : v.name}</div>
+      <div class="tagline">${v.tagline}</div>
+      <div class="foot"><span>BEST <b>${score}</b></span><span>${v.live ? 'PLAY ▸' : 'SOON'}</span></div>`;
+    shelf.appendChild(el);
+  });
+  for (let i = 0; i < EMPTY_SLOTS; i++) {
+    const el = document.createElement('div');
+    el.className = 'ver empty';
+    el.innerHTML = `<div class="tagline">— EMPTY CRATE —</div><div class="name">A FUTURE VERSION SITS HERE</div>`;
+    shelf.appendChild(el);
   }
-  document.getElementById('counter').textContent = total > 0 ? total.toLocaleString() : '∞';
-
-  /* ── attract-mode ticker ── */
-  (function ticker() {
-    const extras = [
-      '★ FROST ARCADE ★',
-      'FREE PLAY — NO QUARTERS REQUIRED',
-      'TODAY\'S WEATHER: -12°C · HEAVY SNOW',
-      'GRACE NOTES POLLUTE NOTHING HERE',
-      'PRESS ANY GAME TO BEGIN',
-      'HIGH SCORES AUTOSAVE IN YOUR BROWSER',
-      'WELCOME, <b>FROST</b>'
-    ];
-    const chunk = '★ HI-SCORE BOARD ★ &nbsp;&nbsp;' + fmtShown.join('&nbsp;&nbsp;·&nbsp;&nbsp;') +
-                  '&nbsp;&nbsp;★ ' + extras.join(' &nbsp;★ ') + ' &nbsp;★&nbsp;&nbsp;';
-    document.getElementById('tickText').innerHTML = chunk + chunk; // duplicated for a seamless loop
-  })();
-
-  /* ── staggered cabinet reveal ── */
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.cabinet').forEach(c => c.classList.add('in'));
-  });
-
-  /* ── konami code ── */
-  const KONAMI = 'uu ddlrlrba'.replace(/\s/g, '');
-  const MAP = { u:'arrowup', d:'arrowdown', l:'arrowleft', r:'arrowright', b:'b', a:'a' };
-  let kIdx = 0, lastT = 0;
-  addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    if (performance.now() - lastT > 4000) kIdx = 0;   // stale attempt resets
-    lastT = performance.now();
-    if (k === MAP[KONAMI[kIdx]]) {
-      if (++kIdx === KONAMI.length) {
-        kIdx = 0;
-        document.body.style.transition = 'filter 1.2s';
-        document.body.style.filter = 'hue-rotate(200deg) brightness(1.25) saturate(1.3)';
-        const sign = document.querySelector('.open-sign');
-        const old = sign.innerHTML;
-        sign.innerHTML = '<span class="dot"></span>★ GAME GENIE ENGAGED — THE ICE CRACKS ★';
-        setTimeout(() => { document.body.style.filter = ''; sign.innerHTML = old; }, 2000);
-      }
-    } else kIdx = (k === MAP[KONAMI[0]]) ? 1 : 0;
-  });
 })();
 </script>
 </body>
