@@ -34,6 +34,23 @@
   }
   .screen.hidden { opacity:0; pointer-events:none; }
 
+  /* install game pill */
+  #installBtn {
+    display:none; font-family:'Nunito', sans-serif; font-weight:700; font-size:14px;
+    color:#8a5a4a; text-decoration:none; letter-spacing:.15em;
+    border:2px dashed #d8a89a; border-radius:40px; padding:10px 28px;
+    background:#fff7ecaa; transition:all .15s;
+  }
+  #installBtn.show { display:inline-block; animation:wig 2.4s ease-in-out infinite; }
+  #installBtn:hover { color:#fff7ec; background:#e0533f; border-color:#e0533f; }
+  #installBtn:active { transform:scale(.97); }
+  #installHint {
+    font-family:'Nunito'; font-weight:700; font-size:11.5px;
+    text-align:center; color:#a08d77; line-height:1.65; max-width:320px;
+  }
+  #installHint b { color:#e0533f; }
+  @keyframes wig { 25% { transform:rotate(-1.2deg); } 75% { transform:rotate(1.2deg); } }
+
   .logo {
     font-family:'Gochi Hand', cursive; font-size:clamp(54px,10vw,110px);
     color:#3a2b20; line-height:.9; text-align:center;
@@ -124,7 +141,9 @@
 <div id="title" class="screen">
   <div class="logo">PULP&nbsp;<span class="ripple">F</span><span class="ripple">U</span><span style="color:#e0533f">S</span><span class="ripple">I</span><span class="ripple" style="color:#e0533f">O</span>N</div>
   <div class="tag">SAY 'CRUSHED' ONE MORE TIME.</div>
-  <button class="btn" id="startBtn">FILL THE CRATE</button>
+  <button class="btn" id="startBtn">PLAY ONLINE</button>
+  <a id="installBtn" href="#">⤓&nbsp; INSTALL GAME</a>
+  <div id="installHint"></div>
   <div class="tut">
     <div class="t"><b>AIM &</b> click / tap to drop</div>
     <div class="t"><b>SAME + SAME</b> fuses into bigger fruit</div>
@@ -783,12 +802,8 @@ function loop(now) {
 }
 $('bestN').textContent = game.best;
 requestAnimationFrame(loop);
-
-/* PWA: register the service worker (silently skips on file://) */
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-}
 })();
 </script>
+<script src="./install.js"></script>
 </body>
 </html>

@@ -1,11 +1,12 @@
 /* PULP FUSION — service worker
    Cache-first shell: the whole arcade is 2 HTML files + art, so it runs fully offline. */
-const CACHE = 'pulp-fusion-v1';
+const CACHE = 'pulp-fusion-v2';
 const ASSETS = [
   './',
   './index.html',
   './pulp-fusion.html',
   './manifest.webmanifest',
+  './install.js',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
