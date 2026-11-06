@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PULP FUSION — Say 'Crushed' One More Time</title>
+<meta name="description" content="A tiny fruit puzzle about greed. Drop fruit, fuse twins, press the harvest — and never let the crate crest the DO NOT CROSS line.">
+<meta name="theme-color" content="#f7ecd7">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PULP FUSION">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Archivo+Black&family=Nunito:wght@700;900&family=VT323&display=swap');
 
@@ -138,7 +147,21 @@
   .lab b { color:#3a2b20; font-weight:900; }
   .lab .dot { color:#e0533f; }
 
-  @media (prefers-reduced-motion: reduce) {
+  .fruitFall, #fruitFall { z-index:0; }
+
+/* install pill */
+#installBtn {
+  display:none; margin-top:18px;
+  font-family:'VT323', monospace; font-size:18px; letter-spacing:.25em;
+  color:#8a5a4a; text-decoration:none; cursor:pointer;
+  border:2px dashed #d8a89a; border-radius:40px; padding:8px 26px;
+  background:#fff7ecaa; transition:all .15s;
+}
+#installBtn.show { display:inline-block; animation:wig 2.4s ease-in-out infinite; }
+#installBtn:hover { color:#fff7ec; background:#e0533f; border-color:#e0533f; }
+@keyframes wig { 25% { transform:rotate(-1.2deg); } 75% { transform:rotate(1.2deg); } }
+
+@media (prefers-reduced-motion: reduce) {
     * { animation:none !important; transition:none !important; }
   }
 </style>
@@ -155,6 +178,7 @@
 <div class="playwrap">
   <a class="play" href="./pulp-fusion.html">▶&nbsp; PLAY ORIGINAL</a>
   <div class="playhint">AIM & CLICK TO DROP · <b>ONE PULSE AT A TIME</b></div>
+<a id="installBtn" href="#">⤓&nbsp; INSTALL APP</a>
 </div>
 
 <div class="plaque">
@@ -238,6 +262,28 @@
     shelf.appendChild(el);
   }
 })();
+
+/* ── PWA: service worker + install prompt ── */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+let defsInstall = null;
+addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  defsInstall = e;
+  document.getElementById('installBtn').classList.add('show');
+});
+addEventListener('appinstalled', () => {
+  const b = document.getElementById('installBtn');
+  if (b) b.remove();
+});
+document.getElementById('installBtn').addEventListener('click', async e => {
+  e.preventDefault();
+  if (!defsInstall) return;
+  defsInstall.prompt();
+  await defsInstall.userChoice;
+  defsInstall = null;
+});
 </script>
 </body>
 </html>
