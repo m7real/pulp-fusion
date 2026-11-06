@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>MELONCHOLY</title>
+<title>PULP FUSION</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Nunito:wght@700;900&display=swap');
 
@@ -88,10 +88,21 @@
     color:#e0533f; font-weight:900; letter-spacing:.2em; font-size:14px; opacity:0;
   }
   #mute { position:fixed; bottom:16px; right:18px; color:#8a766388; font-size:11px; font-weight:700; z-index:6; }
+  #home {
+    position:fixed; bottom:14px; left:18px; z-index:20;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:12px; letter-spacing:.08em;
+    color:#6b5a49; text-decoration:none;
+    border:2px solid #e8d9bd; border-radius:40px; padding:6px 14px 6px 11px;
+    background:#fff7ec; box-shadow:0 3px 0 #e8d9bd;
+    transition:transform .1s, box-shadow .1s, color .1s;
+  }
+  #home:hover { color:#e0533f; transform:translateY(-2px); box-shadow:0 5px 0 #e8d9bd; }
+  #home:active { transform:translateY(2px); box-shadow:0 1px 0 #e8d9bd; }
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<a id="home" href="./index.html">◂ FROST ARCADE</a>
 
 <div id="hud">
   <div id="besthud">BEST<br><b id="bestN">0</b></div>
@@ -102,8 +113,8 @@
 </div>
 
 <div id="title" class="screen">
-  <div class="logo">MEL<span class="ripple">O</span><span class="ripple">N</span><span class="ripple" style="color:#e0533f">C</span>HOL<span style="color:#e0533f">Y</span></div>
-  <div class="tag">A TINY FRUIT PUZZLE ABOUT REGRET</div>
+  <div class="logo">PULP&nbsp;<span class="ripple">F</span><span class="ripple">U</span><span style="color:#e0533f">S</span><span class="ripple">I</span><span class="ripple" style="color:#e0533f">O</span>N</div>
+  <div class="tag">SAY 'CRUSHED' ONE MORE TIME.</div>
   <button class="btn" id="startBtn">FILL THE CRATE</button>
   <div class="tut">
     <div class="t"><b>AIM &</b> click / tap to drop</div>
@@ -195,10 +206,25 @@ const SFX = {
 
 // ================= state =================
 const game = {
-  state: 'menu', score: 0, best: +(localStorage.getItem('meloncholy-best') || 0),
+  state: 'menu', score: 0, best: 0,
   merges: 0, biggest: 0, chain: 0, chainT: 0, deadT: 0,
   shake: 0, banner: null, bannerT: 0, watermelon: false
 };
+// score-key migration chain: meloncholy → confiture → pulp-fusion
+try {
+  const NEW = 'pulp-fusion-best';
+  const OLD_KEYS = ['confiture-best', 'meloncholy-best'];
+  if (localStorage.getItem(NEW) === null) {
+    for (const old of OLD_KEYS) {
+      const v = localStorage.getItem(old);
+      if (v !== null) { localStorage.setItem(NEW, v); localStorage.removeItem(old); break; }
+    }
+  } else {
+    // clean up any stragglers from previous eras
+    OLD_KEYS.forEach(k => localStorage.removeItem(k));
+  }
+} catch (e) {}
+game.best = +(localStorage.getItem('pulp-fusion-best') || 0);
 let fruits = [], particles = [], floats = [], rings = [];
 const spawn = { x: FIELD.w / 2, tx: FIELD.w / 2 };
 let current = null, nextQ = [], dropCd = 0;
@@ -369,7 +395,7 @@ function die() {
   game.state = 'dead';
   SFX.over(); game.shake = 16;
   const isBest = game.score > game.best;
-  if (isBest) { game.best = game.score; localStorage.setItem('meloncholy-best', game.score); }
+  if (isBest) { game.best = game.score; localStorage.setItem('pulp-fusion-best', game.score); }
   $('dScore').textContent = game.score;
   $('dFruit').textContent = SPECIES[game.biggest].n;
   $('dMerges').textContent = game.merges;

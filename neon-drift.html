@@ -78,10 +78,19 @@
           text-shadow:0 0 10px #9d4dff88; opacity:0; transition:opacity .2s; z-index:5; }
 
   #mute { position:fixed; bottom:16px; right:20px; color:#9a8ec855; font-size:10px; letter-spacing:.2em; z-index:5; pointer-events:none; }
+  #home {
+    position:fixed; bottom:14px; left:20px; z-index:6;
+    font-family:'Orbitron', monospace; font-size:10px; font-weight:500; letter-spacing:.22em;
+    color:#9a8ec8aa; text-decoration:none; text-transform:uppercase;
+    border:1px solid #9a8ec833; border-radius:3px; padding:6px 12px 6px 9px;
+    background:#08040f88; transition:all .15s;
+  }
+  #home:hover { color:#0ff0ff; border-color:#0ff0ff66; box-shadow:0 0 14px #0ff0ff33; text-shadow:0 0 8px #0ff0ff88; }
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="c"></canvas></div>
+<a id="home" href="./index.html">◂ FROST ARCADE</a>
 <div id="vignette"></div>
 <div id="scanlines"></div>
 

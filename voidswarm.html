@@ -110,10 +110,19 @@
   .goStats .s .l { color:#7d8f80; font-size:11px; letter-spacing:.3em; margin-top:4px; }
   #bestline { color:#ffd6f3; font-size:13px; letter-spacing:.2em; text-shadow:0 0 12px #ff4fd866; }
   .hint { color:#57665a; font-size:11px; letter-spacing:.2em; }
+  #home {
+    position:fixed; bottom:14px; left:18px; z-index:12;
+    font-family:'Rubik', sans-serif; font-weight:700; font-size:11px; letter-spacing:.2em;
+    color:#7d8f80aa; text-decoration:none;
+    border:1px solid #7d8f8044; border-radius:4px; padding:7px 12px 7px 10px;
+    background:#060907cc; transition:all .15s;
+  }
+  #home:hover { color:#7cff4f; border-color:#7cff4f66; box-shadow:0 0 14px #7cff4f33; text-shadow:0 0 8px #7cff4f88; }
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="c"></canvas></div>
+<a id="home" href="./index.html">◂ FROST ARCADE</a>
 
 <div id="hud">
   <div id="xpbar"><div id="xpfill"></div></div>

@@ -248,24 +248,24 @@
     background:#c8ff8f; border-radius:2px;
   }
 
-  /* — MELONCHOLY art — */
-  .art-melon { background:#f7ecd7; }
-  .art-melon .crate {
+  /* — PULP FUSION art — */
+  .art-pulp { background:#f7ecd7; }
+  .art-pulp .crate {
     position:absolute; left:16%; right:16%; bottom:0; top:22%;
     background:#fbf3e2; border:5px solid #3a2b20; border-radius:10px;
   }
-  .art-melon .f { position:absolute; border-radius:50%; box-shadow:inset -6px -8px 0 rgba(0,0,0,.12); }
-  .art-melon .f::before, .art-melon .f::after {
+  .art-pulp .f { position:absolute; border-radius:50%; box-shadow:inset -6px -8px 0 rgba(0,0,0,.12); }
+  .art-pulp .f::before, .art-pulp .f::after {
     content:''; position:absolute; top:38%; width:14%; height:20%;
     background:#2f2018; border-radius:50%;
   }
-  .art-melon .f::before { left:28%; } .art-melon .f::after { right:28%; }
-  .art-melon .f1 { left:22%; bottom:14%; width:54px; height:54px; background:#e0475c; }
-  .art-melon .f2 { left:50%; bottom:10%; width:76px; height:76px; background:#9a5bd6; }
-  .art-melon .f3 { left:36%; bottom:44%; width:30px; height:30px; background:#f3c93e; }
-  .art-melon .f4 { right:14%; bottom:12%; width:44px; height:44px; background:#f2913d; animation:peek 2.4s ease-in-out infinite; }
+  .art-pulp .f::before { left:28%; } .art-pulp .f::after { right:28%; }
+  .art-pulp .f1 { left:22%; bottom:14%; width:54px; height:54px; background:#e0475c; }
+  .art-pulp .f2 { left:50%; bottom:10%; width:76px; height:76px; background:#9a5bd6; }
+  .art-pulp .f3 { left:36%; bottom:44%; width:30px; height:30px; background:#f3c93e; }
+  .art-pulp .f4 { right:14%; bottom:12%; width:44px; height:44px; background:#f2913d; animation:peek 2.4s ease-in-out infinite; }
   @keyframes peek { 50% { transform:translateY(-6px) rotate(-6deg); } }
-  .art-melon .fall {
+  .art-pulp .fall {
     position:absolute; right:26%; top:-8%; width:36px; height:36px; border-radius:50%;
     background:#ef5872; box-shadow:inset -5px -7px 0 rgba(0,0,0,.12);
     animation:drop 1.15s cubic-bezier(.55,0,1,.45) infinite;
@@ -376,9 +376,9 @@
     <div class="coinslot"><i></i><i></i></div>
   </a>
 
-  <!-- MELONCHOLY -->
-  <a class="cabinet" href="./meloncholy.html" style="--glow:#e0533f55; --glow-dim:#e0533f14; --ac:#3a2b20; --ac2:#e0533f; --d:.31s">
-    <div class="bezel"><div class="screen-art art-melon">
+  <!-- PULP FUSION -->
+  <a class="cabinet" href="./pulp-fusion.html" style="--glow:#e0533f55; --glow-dim:#e0533f14; --ac:#3a2b20; --ac2:#e0533f; --d:.31s">
+    <div class="bezel"><div class="screen-art art-pulp">
       <div class="crate"></div>
       <div class="f f1"></div>
       <div class="f f2"></div>
@@ -387,9 +387,9 @@
       <div class="fall"></div>
     </div></div>
     <div class="panel">
-      <div class="genre-row"><span class="genre">DROP-MERGE PUZZLE</span><span class="best">BEST — <b data-score="meloncholy-best">—</b></span></div>
-      <div class="gtitle">MELON<em>CHOLY</em></div>
-      <div class="gdesc">A tiny fruit puzzle about regret. Fuse twins, grow the melon — and never let the crate crest the DO NOT CROSS line. Contains 1 legendary watermelon.</div>
+      <div class="genre-row"><span class="genre">DROP-MERGE PUZZLE</span><span class="best">BEST — <b data-score="pulp-fusion-best">—</b></span></div>
+      <div class="gtitle">PULP <em>FUSION</em></div>
+      <div class="gdesc">Say 'crushed' one more time. Drop fruit, fuse twins, press the harvest — and never let the crate crest the DO NOT CROSS line. Contains 1 legendary watermelon.</div>
       <div class="keys"><span class="key">AIM & CLICK</span><span class="key">SPACE DROP</span><span class="key">← → AIM</span><span class="pop">▸ 1P</span></div>
     </div>
     <div class="coinslot"><i></i><i></i></div>
@@ -427,7 +427,7 @@
   const GAMES = [
     { key:'neon-drift-best',  name:'NEON DRIFT',  fmt:v => v + ' PTS' },
     { key:'voidswarm-best',   name:'VOIDSWARM',   fmt:v => v == null ? null : (Math.floor(v / 60) + ':' + String(v % 60).padStart(2, '0')) },
-    { key:'meloncholy-best',  name:'MELONCHOLY',  fmt:v => v + ' PTS' }
+    { key:'pulp-fusion-best',  name:'PULP FUSION',  fmt:v => v + ' PTS' }
   ];
   const fmtShown = [];
   let total = 0;
